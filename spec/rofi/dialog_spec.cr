@@ -127,20 +127,20 @@ describe Rofi::Dialog do
       key.should eq(0)
     end
 
-    pending "does fuzzy matching if specified" do
+    it "does fuzzy matching if specified" do
       dialog = Rofi::Dialog.new(
         %w(success/fail),
-        prompt: "type 'suc <space> ail' and hit enter",
+        prompt: "type 'sucail' and hit enter",
       )
 
       choice, key = dialog.show
-      choice.should eq("suc ail")
+      choice.should eq("sucail")
       key.should eq(0)
 
       dialog = Rofi::Dialog.new(
         %w(success/fail),
         prompt: "do it again",
-        fuzzy: true
+        matching_method: Rofi::MatchingMethod::Fuzzy
       )
 
       choice, key = dialog.show

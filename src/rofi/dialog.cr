@@ -1,42 +1,34 @@
 require "./exception"
+require "./matching_method"
 
 module Rofi
   class Dialog
-    getter(
-      choices,
-      prompt,
-      selected_row,
-      lines,
-      case_insensitive,
-      active_rows,
-      urgent_rows,
-      message,
-      fuzzy,
-      key_bindings
-    )
+    getter choices : Array(String)
+    getter prompt : String?
+    getter selected_row : Int32?
+    getter lines : Int32?
+    getter case_insensitive : Bool = false
+    getter active_rows : Array(Int32)?
+    getter urgent_rows : Array(Int32)?
+    getter message : String?
+    getter matching_method : MatchingMethod = MatchingMethod::Normal
+    getter key_bindings : Hash(String, Int32) = {} of String => Int32
 
-    def initialize(
-      @choices = [] of String : Array(String),
-      @prompt = nil : String?,
-      @selected_row = nil : Int32?,
-      @lines = nil : Int32?,
-      @case_insensitive = false : Bool,
-      @active_rows = nil : Array(Int32)?,
-      @urgent_rows = nil : Array(Int32)?,
-      @message = nil : String?,
-      @fuzzy = false : Bool,
-      @key_bindings = {} of String => Int32 : Hash(String, Int32)
-    )
+    def initialize(@choices, **options : **T) forall T
+      {% for key in T.keys %}
+        @{{key}} = options[{{key.symbolize}}]
+      {% end %}
     end
 
     def show : { String?, Int32 }
       choice = nil
       error = nil
+
       Process.run("rofi", arguments) do |process|
         choices.each { |choice| process.input.puts(choice) }
         process.input.close
-        choice = process.output.read.chomp
-        error = process.error.read.chomp
+        choice = process.output.gets_to_end.chomp
+        error = process.error.gets_to_end.chomp
       end
 
       exit_code = $?.exit_code
@@ -62,14 +54,11 @@ module Rofi
         "-a" => active_rows.try { |rows| rows.join(",") },
         "-u" => urgent_rows.try { |rows| rows.join(",") },
         "-mesg" => message,
-        "-z" => fuzzy,
+        "-matching" => matching_method,
       }.each do |flag, value|
         next unless value
         result << flag
-        case value
-        when String then result << value
-        when Int32 then result << value.to_s
-        end
+        result << value.to_s
       end
 
       key_bindings.each do |binding, slot|
