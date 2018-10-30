@@ -1,11 +1,28 @@
 require "../spec_helper"
 
+class ComplexData 
+  @foo : String
+  @bar : String
+
+  def initialize(@foo, @bar)
+  end
+
+  def to_s(io)
+    io << "#{@foo} - #{@bar}"
+  end
+end
+
 describe Rofi::Dialog do
   describe "#run" do
     it "yields the expected choice" do
       dialog = Rofi::Dialog.new(%w(success), prompt: "hit enter")
 
-      choice, key = dialog.show
+      result = dialog.show
+      result.should_not be_nil
+      result = result.not_nil!
+      result.should_not be_nil
+      choice = result.selected_entry
+      key = result.key_code
       choice.should eq("success")
       key.should eq(0)
     end
@@ -13,7 +30,12 @@ describe Rofi::Dialog do
     it "yields the expected key code" do
       dialog = Rofi::Dialog.new(%w(success), prompt: "hit alt+1")
 
-      choice, key = dialog.show
+      result = dialog.show
+      result.should_not be_nil
+      result = result.not_nil!
+      choice = result.selected_entry
+
+      key = result.key_code
       choice.should eq("success")
       key.should eq(1)
     end
@@ -21,9 +43,8 @@ describe Rofi::Dialog do
     it "yields nil as choice if rofi is exited without selecting an item" do
       dialog = Rofi::Dialog.new(%w(success), prompt: "hit esc")
 
-      choice, key = dialog.show
-      choice.should be_nil
-      key.should eq(0)
+      result = dialog.show
+      result.should be_nil
     end
 
     it "maps key bindings correctly" do
@@ -35,7 +56,12 @@ describe Rofi::Dialog do
         }
       )
 
-      choice, key = dialog.show
+      result = dialog.show
+      result.should_not be_nil
+      result = result.not_nil!
+      choice = result.selected_entry
+
+      key = result.key_code
       choice.should eq("success")
       key.should eq(3)
     end
@@ -47,7 +73,12 @@ describe Rofi::Dialog do
         selected_row: 1
       )
 
-      choice, key = dialog.show
+      result = dialog.show
+      result.should_not be_nil
+      result = result.not_nil!
+      choice = result.selected_entry
+
+      key = result.key_code
       choice.should eq("second")
       key.should eq(0)
     end
@@ -59,7 +90,12 @@ describe Rofi::Dialog do
         lines: 3
       )
 
-      choice, key = dialog.show
+      result = dialog.show
+      result.should_not be_nil
+      result = result.not_nil!
+      choice = result.selected_entry
+
+      key = result.key_code
       choice.should eq("success")
       key.should eq(0)
     end
@@ -69,7 +105,12 @@ describe Rofi::Dialog do
         %w(Fail fSuccess),
         prompt: "type f and hit enter"
       )
-      choice, key = dialog.show
+      result = dialog.show
+      result.should_not be_nil
+      result = result.not_nil!
+      choice = result.selected_entry
+
+      key = result.key_code
       choice.should eq("fSuccess")
       key.should eq(0)
 
@@ -79,7 +120,12 @@ describe Rofi::Dialog do
         case_insensitive: true
       )
 
-      choice, key = dialog.show
+      result = dialog.show
+      result.should_not be_nil
+      result = result.not_nil!
+      choice = result.selected_entry
+
+      key = result.key_code
       choice.should eq("FSuccess")
       key.should eq(0)
     end
@@ -95,7 +141,12 @@ describe Rofi::Dialog do
         active_rows: [0,2]
       )
 
-      choice, key = dialog.show
+      result = dialog.show
+      result.should_not be_nil
+      result = result.not_nil!
+      choice = result.selected_entry
+
+      key = result.key_code
       choice.should eq("success")
       key.should eq(0)
     end
@@ -110,7 +161,12 @@ describe Rofi::Dialog do
         urgent_rows: [0]
       )
 
-      choice, key = dialog.show
+      result = dialog.show
+      result.should_not be_nil
+      result = result.not_nil!
+      choice = result.selected_entry
+
+      key = result.key_code
       choice.should eq("success")
       key.should eq(0)
     end
@@ -122,7 +178,12 @@ describe Rofi::Dialog do
         message: "I'm a message. You can hit enter"
       )
 
-      choice, key = dialog.show
+      result = dialog.show
+      result.should_not be_nil
+      result = result.not_nil!
+      choice = result.selected_entry
+
+      key = result.key_code
       choice.should eq("success")
       key.should eq(0)
     end
@@ -133,8 +194,15 @@ describe Rofi::Dialog do
         prompt: "type 'sucail' and hit enter",
       )
 
-      choice, key = dialog.show
-      choice.should eq("sucail")
+      result = dialog.show
+      result.should_not be_nil
+      result = result.not_nil!
+      choice = result.selected_entry
+      input = result.input
+
+      key = result.key_code
+      input.should eq("sucail")
+      choice.should be_nil
       key.should eq(0)
 
       dialog = Rofi::Dialog.new(
@@ -143,8 +211,29 @@ describe Rofi::Dialog do
         matching_method: Rofi::MatchingMethod::Fuzzy
       )
 
-      choice, key = dialog.show
+      result = dialog.show
+      result.should_not be_nil
+      result = result.not_nil!
+      choice = result.selected_entry
+
+      key = result.key_code
       choice.should eq("success/fail")
+      key.should eq(0)
+    end
+
+    it "allows selecting from complex data" do
+      data = [ComplexData.new("foo", "bar"), ComplexData.new("bar", "baz")]
+      dialog = Rofi::Dialog.new(data, prompt: "type 'bar baz' and hit enter")
+
+      result = dialog.show
+      result.should_not be_nil
+      result = result.not_nil!
+      choice = result.selected_entry
+      input = result.input
+
+      key = result.key_code
+      input.should eq("bar - baz")
+      choice.should be(data[1])
       key.should eq(0)
     end
   end
