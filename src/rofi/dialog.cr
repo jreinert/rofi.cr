@@ -18,6 +18,8 @@ module Rofi
     getter message : String?
     getter matching_method : MatchingMethod = MatchingMethod::Normal
     getter key_bindings : Hash(String, Int32) = {} of String => Int32
+    getter no_custom : Bool = false
+    getter only_match : Bool = false
 
     def initialize(@choices : Indexable(T), **options : **K) forall K
       {% for key in K.keys %}
@@ -62,6 +64,8 @@ module Rofi
         "-mesg" => message,
         "-matching" => matching_method,
         "-format" => "i#{FIELD_SEPARATOR}s",
+        "-no-custom" => no_custom,
+        "-only-match" => only_match,
       }.each do |flag, value|
         next unless value
         result << flag
