@@ -41,7 +41,7 @@ module Rofi
       when 0 then
       when 1 then return nil
       when 10..28 then key_code = exit_code - 9
-      else raise Exception.new("rofi error: #{error.to_s}")
+      else raise Exception.new("rofi error: #{error.to_s} (exit code #{exit_code})")
       end
 
       index, input = output.to_s.split(FIELD_SEPARATOR)
