@@ -55,7 +55,7 @@ module Rofi
       result = [] of String
       {
         "-dmenu" => true,
-        "-p" => "#{prompt} ",
+        "-p" => prompt,
         "-selected-row" => selected_row,
         "-l" => lines,
         "-i" => case_insensitive,
