@@ -40,7 +40,7 @@ module Rofi
       case exit_code
       when 0 then
       when 1 then return nil
-      when 10..18 then key_code = exit_code - 9
+      when 10..28 then key_code = exit_code - 9
       else raise Exception.new("rofi error: #{error.to_s}")
       end
 
